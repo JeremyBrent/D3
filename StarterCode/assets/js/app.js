@@ -22,7 +22,7 @@ var chartCanvass = svg.append('g')
 
 d3.csv('assets/data/data.csv').then(function (data) {
     console.log(data);
-    
+
     data.forEach(d => {
         d.healthcare = +d.healthcare;
         d.income = +d.income;
@@ -59,16 +59,28 @@ d3.csv('assets/data/data.csv').then(function (data) {
         .append("g");
 
     chartDots.append("circle")
-            .classed("stateCircle", true)
-            .attr("cx", d =>  xScale(d.poverty))
-            .attr("cy", d =>  yScale(d.obesity))
-            .attr("r", 8);
+        .classed("stateCircle", true)
+        .attr("cx", d => xScale(d.poverty))
+        .attr("cy", d => yScale(d.obesity))
+        .attr("r", 8);
 
-    chartDots
-            .append("text")
-                .text(d => d.abbr)
-                .classed("stateText", true)
-                .attr("x", d => xScale(d.poverty))
-                .attr("y", d => yScale(d.obesity));
+    chartDots.append("text")
+        .text(d => d.abbr)
+        .classed("stateText", true)
+        .attr("x", d => xScale(d.poverty))
+        .attr("y", d => yScale(d.obesity));
+
+    /// Creating tool tips
+    var toolTip = chartCanvass.append("div")
+        .attr("class", "tooltip");
+
+    chartDots.on("mouseover", function (d, i) {
+        toolTip.style("display", "block");
+        toolTip.html(`<strong>State:</strong> ${d.state[i]}`)
+            .style("left", d3.event.pageX + "px")
+            .style("top", d3.event.pageY + "px");
+    }).on("mouseout", function () {
+            toolTip.style("display", "none");
+        });
 })
 
