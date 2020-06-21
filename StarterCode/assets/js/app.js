@@ -1,4 +1,4 @@
-// @TODO: YOUR CODE HERE!
+
 var svgHeight = 500;
 var svgWidth = 500;
 
@@ -53,13 +53,22 @@ d3.csv('assets/data/data.csv').then(function (data) {
         .call(yAxis);
 
     /// creating the scatter points
-    chartCanvass.selectAll("circle")
+    var chartDots = chartCanvass.selectAll("circle")
         .data(data)
         .enter()
-        .append("circle")
+        .append("g");
+
+    chartDots.append("circle")
+            .classed("stateCircle", true)
             .attr("cx", d =>  xScale(d.poverty))
             .attr("cy", d =>  yScale(d.obesity))
-            .attr("r", 3)
-            .style("fill", "#000");
+            .attr("r", 8);
+
+    chartDots
+            .append("text")
+                .text(d => d.abbr)
+                .classed("stateText", true)
+                .attr("x", d => xScale(d.poverty))
+                .attr("y", d => yScale(d.obesity));
 })
 
