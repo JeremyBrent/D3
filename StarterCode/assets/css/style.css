@@ -12,6 +12,8 @@ html {
 body {
   /* Padding bottom by footer height */
   padding-bottom: 80px;
+  background-image: url("../grid.jpg");
+  z-index:-1
 }
 
 #footer {
