@@ -34,6 +34,7 @@ function xScale(data, xAxis) {
     return xLinearScale
 }
 
+// function used for updating y-scale var upon click on axis label
 function yScale(data, yAxis) {
     var yLinearScale = d3.scaleLinear()
         .domain([d3.min(data, d => d[yAxis]) * .95,
@@ -54,6 +55,7 @@ function renderXAxis(newXScale, xAxis) {
     return xAxis;
 }
 
+// function used for updating yAxis var upon click on axis label
 function renderYAxis(newYScale, yAxis) {
     var leftAxis = d3.axisLeft(newYScale);
 
@@ -66,7 +68,7 @@ function renderYAxis(newYScale, yAxis) {
 
 // function used for updating circles group with a transition to
 // new circles
-function renderCircles(emptyChartDots, newXScale, newYScale, chosenXAxis, chosenYAxis) {
+function moveCircles(emptyChartDots, newXScale, newYScale, chosenXAxis, chosenYAxis) {
 
     emptyChartDots.transition()
         .duration(1000)
@@ -76,7 +78,8 @@ function renderCircles(emptyChartDots, newXScale, newYScale, chosenXAxis, chosen
     return emptyChartDots;
 }
 
-function renderLabels(labels, newXScale, newYScale, chosenXAxis, chosenYAxis) {
+// Function used to move the labels on the scatter dots 
+function moveLabels(labels, newXScale, newYScale, chosenXAxis, chosenYAxis) {
 
     labels.transition()
         .duration(1000)
@@ -85,10 +88,14 @@ function renderLabels(labels, newXScale, newYScale, chosenXAxis, chosenYAxis) {
 
     return labels;
 }
- 
-function updateTitle(xAxisName, yAxisName, ){
 
+// Function used for updating the titles
+function updateTitle(xlabel, ylabel, chartTitle) {
+    chartTitle.text(`${capitalize(xlabel)} vs. ${capitalize(ylabel)}`)
+
+    return chartTitle
 }
+
 // function used for updating circles group with new tooltip
 function updateToolTip(xAxisName, yAxisName, circlesGroup) {
 
@@ -140,6 +147,11 @@ function updateToolTip(xAxisName, yAxisName, circlesGroup) {
     return circlesGroup;
 }
 
+// Function to capitalize words at 0th index, used in chart title
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 // Create group for three x-axis labels
 var xlabelsGroup = chartCanvass.append("g")
     .attr("transform", `translate(${chartWidth / 2}, ${chartHeight + 20})`);
@@ -173,7 +185,7 @@ var ageLabel = xlabelsGroup.append("text")
 
 // Setting y axis label
 var ylabelsGroup = chartCanvass.append('g')
-    .attr("transform",`translate(${0 - margin.left}, ${chartHeight/2})`)
+    .attr("transform", `translate(${0 - margin.left}, ${chartHeight / 2})`)
 
 var obesityLabel = ylabelsGroup.append('text')
     .attr("y", 45)
@@ -207,14 +219,14 @@ var healthcareLabel = ylabelsGroup.append('text')
 
 // Setting Chart title
 var chartTitle = chartCanvass.append("g").append("text")
-    .attr("x", (margin.left))
+    .attr("x", 0)
     .attr("y", .75 - (margin.top / 2))
     .attr("text-anchor", "left")
     .style("font-size", "30px")
     .style('font-family', "sans-serif")
-    .text(`${xAxisName} vs ${yAxisName}`);
+    .text(`${capitalize(xAxisName)} vs ${capitalize(yAxisName)}`);
 
-
+// Looping through data
 d3.csv('assets/data/data.csv').then(function (data) {
     console.log(data);
 
@@ -250,7 +262,6 @@ d3.csv('assets/data/data.csv').then(function (data) {
         .enter()
         .append("g")
 
-
     /// Creating the chart dots locations
     var chartDots = emptyChartDots.append("g")
         .append("circle")
@@ -259,6 +270,7 @@ d3.csv('assets/data/data.csv').then(function (data) {
         .attr("cy", d => yLinearScale(d[yAxisName]))
         .attr("r", 10)
 
+    // Creating Chart labels
     var chartLabels = emptyChartDots.append("g").append("text")
         .text(d => d.abbr)
         .classed("stateText", true)
@@ -288,12 +300,15 @@ d3.csv('assets/data/data.csv').then(function (data) {
                 xAxis = renderXAxis(xLinearScale, xAxis);
 
                 // updates circles with new x values
-                chartDots = renderCircles(chartDots, xLinearScale, yLinearScale, xAxisName, yAxisName);
+                chartDots = moveCircles(chartDots, xLinearScale, yLinearScale, xAxisName, yAxisName);
 
-                chartLabels = renderLabels(chartLabels, xLinearScale, yLinearScale, xAxisName, yAxisName);
+                chartLabels = moveLabels(chartLabels, xLinearScale, yLinearScale, xAxisName, yAxisName);
 
                 // updates tooltips with new info
                 emptyChartDots = updateToolTip(xAxisName, yAxisName, emptyChartDots);
+
+                // updates chart title 
+                chartTitle = updateTitle(xAxisName, yAxisName, chartTitle)
 
                 // changes classes to change bold text
                 if (xAxisName === "poverty") {
@@ -331,31 +346,35 @@ d3.csv('assets/data/data.csv').then(function (data) {
             }
         });
 
-        ylabelsGroup.selectAll("text")
+    // y axis labels event listener
+    ylabelsGroup.selectAll("text")
         .on("click", function () {
             // get value of selection
             var value = d3.select(this).attr("value");
             if (value !== yAxisName) {
 
-                // replaces chosenXAxis with value
+                // replaces chosenYAxis with value
                 yAxisName = value;
 
-                // console.log(chosenXAxis)
+                // console.log(chosenYAxis)
 
                 // functions here found above csv import
-                // updates x scale for new data
+                // updates y scale for new data
                 yLinearScale = yScale(data, yAxisName);
 
-                // updates x axis with transition
+                // updates y axis with transition
                 yAxis = renderYAxis(yLinearScale, yAxis);
 
-                // updates circles with new x values
-                chartDots = renderCircles(chartDots, xLinearScale, yLinearScale, xAxisName, yAxisName);
+                // updates circles with new y values
+                chartDots = moveCircles(chartDots, xLinearScale, yLinearScale, xAxisName, yAxisName);
 
-                chartLabels = renderLabels(chartLabels, xLinearScale, yLinearScale, xAxisName, yAxisName);
+                chartLabels = moveLabels(chartLabels, xLinearScale, yLinearScale, xAxisName, yAxisName);
 
                 // updates tooltips with new info
                 emptyChartDots = updateToolTip(xAxisName, yAxisName, emptyChartDots);
+
+                // updates chart title 
+                chartTitle = updateTitle(xAxisName, yAxisName, chartTitle)
 
                 // changes classes to change bold text
                 if (yAxisName === "obesity") {
@@ -392,7 +411,5 @@ d3.csv('assets/data/data.csv').then(function (data) {
                 }
             }
         });
-
-
 })
 
